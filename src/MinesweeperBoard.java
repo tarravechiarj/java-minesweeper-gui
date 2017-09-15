@@ -13,6 +13,10 @@ public class MinesweeperBoard {
         initializeGrid();
     }
 
+    public int getCell(int x, int y) {
+        return grid[x][y];
+    }
+    
     private void initializeGrid() {
         Random rand = new Random();
         int bombsPlaced = 0;
