@@ -1,8 +1,8 @@
-package Minesweeper;
+package minesweeper;
 
-import javax.swing.JButton;
-import java.awt.Dimension;
-import java.awt.event.ActionListener;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 public class GridButton extends JButton {
     //private ImageIcon hiddenIcon;

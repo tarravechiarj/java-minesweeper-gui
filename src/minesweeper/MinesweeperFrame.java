@@ -1,11 +1,11 @@
-package Minesweeper;
+package minesweeper;
 
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 
 public class MinesweeperFrame {
-    private MinesweeperGame game;
+    private GameState game;
     private Difficulty selectedDifficulty;
     private JFrame gameFrame;
     private JLabel flagsRemaining;
@@ -56,6 +56,7 @@ public class MinesweeperFrame {
             panel.add(b);
             b.addActionListener(e -> selectedDifficulty =
                                 Difficulty.valueOf(b.getText()));
+
             if (d == Difficulty.HARD)
                 b.doClick();
         }
@@ -75,7 +76,7 @@ public class MinesweeperFrame {
         int rows = selectedDifficulty.getRows();
         int cols = selectedDifficulty.getCols();
         int bombs = selectedDifficulty.getBombs();
-        this.game = new MinesweeperGame(rows, cols, bombs);
+        this.game = new GameState(rows, cols, bombs);
         // TODO: new game display (method call)
         /*
         JButton[][] buttonGrid = new JButton[rows][cols];

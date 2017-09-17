@@ -1,4 +1,4 @@
-package Minesweeper;
+package minesweeper;
 
 public enum Difficulty {
     EASY          (9, 9, 10),

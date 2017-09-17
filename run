@@ -1,1 +1,1 @@
-java -cp bin Minesweeper/MinesweeperFrame
+java -cp bin minesweeper.MinesweeperFrame
