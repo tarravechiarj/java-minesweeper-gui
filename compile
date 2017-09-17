@@ -1,0 +1,6 @@
+javac -sourcepath src -cp bin -d bin src/Minesweeper/GridButton.java \
+                                     src/Minesweeper/MinesweeperGame.java \
+                                     src/Minesweeper/MineGrid.java\
+                                     src/Minesweeper/MinesweeperFrame.java \
+                                     src/Minesweeper/Difficulty.java
+
