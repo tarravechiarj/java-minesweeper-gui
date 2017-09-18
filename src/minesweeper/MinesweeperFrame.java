@@ -9,84 +9,89 @@ public class MinesweeperFrame {
     private Difficulty selectedDifficulty;
     private JFrame gameFrame;
     private JLabel flagsRemaining;
-    private JTable gameGrid;
-    // more
-    // difficulty field(s)
+    private JPanel minePanel;
+    private static final Dimension gridButtonSize = new Dimension(20, 20);
 
     public MinesweeperFrame() {
         gameFrame = new JFrame();
         gameFrame.setLocation(200,200);
-        gameFrame.setSize(800,800);
+        gameFrame.setMinimumSize(new Dimension(303,240));
         gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameFrame.setTitle("Minesweeper");
 
         initializeComponents();
-
-        gameFrame.pack();
-        gameFrame.setVisible(true);
     }
 
     private void initializeComponents() {
-        JPanel difficultyPanel = createDifficultyPanel();
-        gameFrame.add(difficultyPanel, BorderLayout.LINE_END);
-
-        JPanel south = new JPanel();
-        JButton newGame = new JButton("New Game");
-        south.add(newGame);
-        gameFrame.add(south, BorderLayout.PAGE_START);
-        newGame.addActionListener(e -> newGameClicked());
-        newGame.doClick();
-
-        JPanel gridPanel = createGridPanel();
-        gameFrame.add(gridPanel, BorderLayout.LINE_START);
+        createDifficultyPanel();
 
         JPanel north = new JPanel();
         flagsRemaining = new JLabel("Flags Remaining");
         north.add(flagsRemaining);
         gameFrame.add(north, BorderLayout.PAGE_START);
+
+        JPanel south = new JPanel();
+        JButton newGame = new JButton("New Game");
+        south.add(newGame);
+        gameFrame.add(south, BorderLayout.SOUTH);
+        newGame.addActionListener(e -> newGameClicked());
+
+        newGameClicked();
     }
 
-    private JPanel createDifficultyPanel() {
-        JPanel panel = new JPanel();
-        ButtonGroup group = new ButtonGroup();
+    private void createDifficultyPanel() {
+        JPanel difficultyPanel = new JPanel();
+        difficultyPanel.setLayout(new BoxLayout(difficultyPanel,
+                                                BoxLayout.Y_AXIS));
+        ButtonGroup radioGroup = new ButtonGroup();
 
         for (Difficulty d : Difficulty.values()) {
             JRadioButton b = new JRadioButton(d.toString());
-            group.add(b);
-            panel.add(b);
+            radioGroup.add(b);
+            difficultyPanel.add(b);
             b.addActionListener(e -> selectedDifficulty =
                                 Difficulty.valueOf(b.getText()));
-
             if (d == Difficulty.HARD)
                 b.doClick();
         }
-        return panel;
-    }
-
-    private JPanel createGridPanel() {
-        JPanel panel = new JPanel();
-
-        gameGrid = new JTable();
-
-        panel.add(gameGrid);
-        return panel;
+        gameFrame.add(difficultyPanel, BorderLayout.EAST);
     }
 
     private void newGameClicked() {
         int rows = selectedDifficulty.getRows();
         int cols = selectedDifficulty.getCols();
-        int bombs = selectedDifficulty.getBombs();
-        this.game = new GameState(rows, cols, bombs);
-        // TODO: new game display (method call)
-        /*
-        JButton[][] buttonGrid = new JButton[rows][cols];
+        int mines = selectedDifficulty.getMines();
+
+        game = new GameState(rows, cols, mines);
+        if (minePanel != null)
+            minePanel.removeAll();
+        minePanel = new JPanel(new GridLayout(rows, cols));
+        setMinePanelSize(rows, cols);
+
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                new GridButton(game.getCell(i, j));
+                JButton b = new JButton("");
+                b.setPreferredSize(gridButtonSize);
+                b.setMinimumSize(gridButtonSize);
+                b.setMaximumSize(gridButtonSize);
+                //b.addActionListener(e -> );
+                //b.addMouseListener();
+                minePanel.add(b);
             }
         }
-        gameGrid = new JTable(gridButton, null);
-        */
+
+        gameFrame.add(minePanel, BorderLayout.CENTER);
+        gameFrame.pack();
+        gameFrame.setVisible(true);
+    }
+
+    private void setMinePanelSize(int rows, int cols) {
+        Dimension panelSize = new Dimension();
+        double width = gridButtonSize.getWidth() * cols;
+        double height = gridButtonSize.getHeight() * rows;
+        panelSize.setSize(width, height);
+        minePanel.setMinimumSize(panelSize);
+        minePanel.setMaximumSize(panelSize);
     }
 
     public static void main(String[] args) {

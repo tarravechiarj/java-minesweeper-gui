@@ -21,10 +21,10 @@ public class GameState {
     }
 
     public boolean isMine(int x, int y) {
-        return grid[x][y] == 0;
+        return grid[x][y] < 0;
     }
 
-    public int getCell(int x, int y) {
+    public int adjMineCount(int x, int y) {
         return grid[x][y];
     }
 
@@ -36,7 +36,7 @@ public class GameState {
             int x = rand.nextInt(rows);
             int y = rand.nextInt(cols);
 
-            if (grid[x][y] >= 0) {
+            if (!isMine(x, y)) {
                 grid[x][y] = -1;
                 incAdjMineCount(x, y);
                 minesPlaced++;
@@ -47,7 +47,7 @@ public class GameState {
     private void incAdjMineCount(int x, int y) {
         for (int i = x; i < x + 2; i++) {
             for (int j = y; j < y + 2; j++) {
-                if (inGrid(i, j) && (i != x || j != y) && (grid[i][j] >= 0))
+                if (inGrid(i, j) && !isMine(i, j))
                     grid[i][j]++;
             }
         }

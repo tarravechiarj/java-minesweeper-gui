@@ -7,12 +7,12 @@ public enum Difficulty {
 
     private final int rows;
     private final int cols;
-    private final int bombs;
+    private final int mines;
 
-    Difficulty(int rows, int cols, int bombs) {
+    Difficulty(int rows, int cols, int mines) {
         this.rows = rows;
         this.cols = cols;
-        this.bombs = bombs;
+        this.mines = mines;
     }
 
     public int getRows() {
@@ -20,10 +20,10 @@ public enum Difficulty {
     }
 
     public int getCols() {
-        return rows;
+        return cols;
     }
 
-    public int getBombs() {
-        return rows;
+    public int getMines() {
+        return mines;
     }
 }
