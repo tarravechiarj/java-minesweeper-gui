@@ -36,6 +36,8 @@ public class MinesweeperFrame {
         gameFrame.add(south, BorderLayout.SOUTH);
         newGame.addActionListener(e -> newGameClicked());
 
+        minePanel = new JPanel(new GridLayout());
+        gameFrame.add(minePanel, BorderLayout.CENTER);
         newGameClicked();
     }
 
@@ -46,11 +48,12 @@ public class MinesweeperFrame {
         ButtonGroup radioGroup = new ButtonGroup();
 
         for (Difficulty d : Difficulty.values()) {
-            JRadioButton b = new JRadioButton(d.toString());
+            JRadioButton b = new JRadioButton(d.getDescription());
+            b.setActionCommand(d.toString());
             radioGroup.add(b);
             difficultyPanel.add(b);
             b.addActionListener(e -> selectedDifficulty =
-                                Difficulty.valueOf(b.getText()));
+                                Difficulty.valueOf(b.getActionCommand()));
             if (d == Difficulty.HARD)
                 b.doClick();
         }
@@ -61,11 +64,8 @@ public class MinesweeperFrame {
         int rows = selectedDifficulty.getRows();
         int cols = selectedDifficulty.getCols();
         int mines = selectedDifficulty.getMines();
-
         game = new GameState(rows, cols, mines);
-        if (minePanel != null)
-            minePanel.removeAll();
-        minePanel = new JPanel(new GridLayout(rows, cols));
+        minePanel.removeAll();
         setMinePanelSize(rows, cols);
 
         for (int i = 0; i < rows; i++) {
@@ -80,12 +80,14 @@ public class MinesweeperFrame {
             }
         }
 
-        gameFrame.add(minePanel, BorderLayout.CENTER);
         gameFrame.pack();
         gameFrame.setVisible(true);
     }
 
     private void setMinePanelSize(int rows, int cols) {
+        GridLayout layout = (GridLayout) minePanel.getLayout();
+        layout.setRows(rows);
+        layout.setColumns(cols);
         Dimension panelSize = new Dimension();
         double width = gridButtonSize.getWidth() * cols;
         double height = gridButtonSize.getHeight() * rows;

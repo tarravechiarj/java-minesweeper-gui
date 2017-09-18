@@ -26,4 +26,17 @@ public enum Difficulty {
     public int getMines() {
         return mines;
     }
+
+    public String getDescription() {
+        switch(this) {
+            case EASY:
+                return "Easy";
+            case INTERMEDIATE:
+                return "Intermediate";
+            case HARD:
+                return "Hard";
+            default:
+                return null;
+        }
+    }
 }
