@@ -1,3 +1,4 @@
 javac -sourcepath src -cp bin -d bin src/minesweeper/Difficulty.java \
+                                     src/minesweeper/GameIcon.java \
                                      src/minesweeper/GameState.java \
                                      src/minesweeper/MinesweeperFrame.java

@@ -4,11 +4,14 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 
+// TODO: end of game code: stop timer
 public class MinesweeperFrame {
     private GameState game;
     private Difficulty selectedDifficulty;
     private JFrame gameFrame;
     private JLabel flagsRemaining;
+    private JLabel time;
+    private Timer timer;
     private JPanel minePanel;
     private static final Dimension gridButtonSize = new Dimension(20, 20);
 
@@ -24,20 +27,9 @@ public class MinesweeperFrame {
 
     private void initializeComponents() {
         createDifficultyPanel();
-
-        JPanel north = new JPanel();
-        flagsRemaining = new JLabel("Flags Remaining");
-        north.add(flagsRemaining);
-        gameFrame.add(north, BorderLayout.PAGE_START);
-
-        JPanel south = new JPanel();
-        JButton newGame = new JButton("New Game");
-        south.add(newGame);
-        gameFrame.add(south, BorderLayout.SOUTH);
-        newGame.addActionListener(e -> newGameClicked());
-
-        minePanel = new JPanel(new GridLayout());
-        gameFrame.add(minePanel, BorderLayout.CENTER);
+        createLabelPanel();
+        createNewGamePanel();
+        createMinePanel();
         newGameClicked();
     }
 
@@ -60,11 +52,42 @@ public class MinesweeperFrame {
         gameFrame.add(difficultyPanel, BorderLayout.EAST);
     }
 
+    private void createLabelPanel() {
+        JPanel labelPanel = new JPanel();
+        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.X_AXIS));
+
+        flagsRemaining = new JLabel("Flags");
+        time = new JLabel("");
+        timer = new Timer(1000, e -> {
+            int t = Integer.parseUnsignedInt(time.getText().trim());
+            time.setText(Integer.toUnsignedString(++t));
+        });
+
+        labelPanel.add(flagsRemaining);
+        labelPanel.add(Box.createHorizontalGlue());
+        labelPanel.add(time);
+        gameFrame.add(labelPanel, BorderLayout.PAGE_START);
+    }
+
+    private void createNewGamePanel() {
+        JPanel newGamePanel = new JPanel();
+        JButton newGameButton = new JButton("New Game");
+        newGamePanel.add(newGameButton);
+        newGameButton.addActionListener(e -> newGameClicked());
+        gameFrame.add(newGamePanel, BorderLayout.SOUTH);
+    }
+
+    private void createMinePanel() {
+        minePanel = new JPanel(new GridLayout());
+        gameFrame.add(minePanel, BorderLayout.CENTER);
+    }
+
     private void newGameClicked() {
         int rows = selectedDifficulty.getRows();
         int cols = selectedDifficulty.getCols();
         int mines = selectedDifficulty.getMines();
         game = new GameState(rows, cols, mines);
+        time.setText("0");
         minePanel.removeAll();
         setMinePanelSize(rows, cols);
 
@@ -74,23 +97,25 @@ public class MinesweeperFrame {
                 b.setPreferredSize(gridButtonSize);
                 b.setMinimumSize(gridButtonSize);
                 b.setMaximumSize(gridButtonSize);
-                //b.addActionListener(e -> );
-                //b.addMouseListener();
+                //b.addMinesweeperListener(game, i, j);
                 minePanel.add(b);
             }
         }
 
         gameFrame.pack();
         gameFrame.setVisible(true);
+        timer.start();
     }
 
     private void setMinePanelSize(int rows, int cols) {
         GridLayout layout = (GridLayout) minePanel.getLayout();
         layout.setRows(rows);
         layout.setColumns(cols);
+
         Dimension panelSize = new Dimension();
         double width = gridButtonSize.getWidth() * cols;
         double height = gridButtonSize.getHeight() * rows;
+
         panelSize.setSize(width, height);
         minePanel.setMinimumSize(panelSize);
         minePanel.setMaximumSize(panelSize);
