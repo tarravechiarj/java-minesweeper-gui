@@ -7,6 +7,7 @@ public enum GameIcon {
     MINE     ("mine.png"),
     EXP_MINE ("explodedMine.png"),
     X_MINE   ("crossedMine.png"),
+    BLANK    ("blank.png"),
     ONE      ("1.png"),
     TWO      ("2.png"),
     THREE    ("3.png"),
