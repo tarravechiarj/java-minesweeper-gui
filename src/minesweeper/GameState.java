@@ -69,7 +69,7 @@ public class GameState {
         return flagged[x][y];
     }
 
-    public int adjMineCount(int x, int y) {
+    private int adjMineCount(int x, int y) {
         return grid[x][y];
     }
 
@@ -79,6 +79,10 @@ public class GameState {
 
     public int getFlagsRemaining() {
         return flagsRemaining;
+    }
+
+    public int getMines() {
+        return mines;
     }
 
     public boolean hasWon() {

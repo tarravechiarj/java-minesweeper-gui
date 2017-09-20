@@ -108,9 +108,8 @@ public class MinesweeperFrame {
         }
 
         outcome.setText("");
-        int flags = game.getFlagsRemaining();
-        flagsRemaining.setText(Integer.toUnsignedString(flags));
         time.setText("0");
+        setFlagsRemaining();
         gameFrame.pack();
         gameFrame.setVisible(true);
         timer.start();
@@ -128,6 +127,12 @@ public class MinesweeperFrame {
         panelSize.setSize(width, height);
         minePanel.setMinimumSize(panelSize);
         minePanel.setMaximumSize(panelSize);
+    }
+
+    private void setFlagsRemaining() {
+        int flags = game.getFlagsRemaining();
+        int mines = game.getMines();
+        flagsRemaining.setText(String.format("%02d / %d", flags, mines));
     }
 
     private void recursiveReveal(int x, int y) {
@@ -183,9 +188,7 @@ public class MinesweeperFrame {
         JButton b = gridButtons[x][y];
         GameIcon icon = game.flag(x, y);
         b.setIcon(icon.getIcon());
-
-        int flags = game.getFlagsRemaining();
-        flagsRemaining.setText(Integer.toUnsignedString(flags));
+        setFlagsRemaining();
     }
 
     private static void removeMouseListeners(JButton b) {
