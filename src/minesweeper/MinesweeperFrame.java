@@ -6,7 +6,6 @@ import java.awt.*;
 
 public class MinesweeperFrame {
     private GameState game;
-    private Difficulty selectedDifficulty;
     private JFrame gameFrame;
     private JLabel flagsRemaining;
     private JLabel outcome;
@@ -14,7 +13,8 @@ public class MinesweeperFrame {
     private Timer timer;
     private JPanel minePanel;
     private JButton[][] gridButtons;
-    private static final Dimension gridButtonSize = new Dimension(20, 20);
+    private Difficulty selectedDifficulty = Difficulty.HARD;
+    private static final Dimension gridButtonSize = new Dimension(26, 26);
 
     public MinesweeperFrame() {
         gameFrame = new JFrame();
@@ -28,8 +28,8 @@ public class MinesweeperFrame {
 
     private void initializeComponents() {
         createDifficultyPanel();
-        createLabelPanel();
-        createNewGamePanel();
+        createTopPanel();
+        createBottomPanel();
         createMinePanel();
         newGameClicked();
     }
@@ -45,17 +45,16 @@ public class MinesweeperFrame {
             b.setActionCommand(d.toString());
             radioGroup.add(b);
             difficultyPanel.add(b);
-            b.addActionListener(e -> selectedDifficulty =
-                                Difficulty.valueOf(b.getActionCommand()));
-            if (d == Difficulty.HARD)
-                b.doClick();
+            b.addActionListener(e -> {
+                selectedDifficulty = Difficulty.valueOf(b.getActionCommand());
+            });
         }
         gameFrame.add(difficultyPanel, BorderLayout.EAST);
     }
 
-    private void createLabelPanel() {
-        JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.X_AXIS));
+    private void createTopPanel() {
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
 
         flagsRemaining = new JLabel("Flags");
         outcome = new JLabel("");
@@ -65,20 +64,20 @@ public class MinesweeperFrame {
             time.setText(Integer.toUnsignedString(++t));
         });
 
-        labelPanel.add(flagsRemaining);
-        labelPanel.add(Box.createHorizontalGlue());
-        labelPanel.add(outcome);
-        labelPanel.add(Box.createHorizontalGlue());
-        labelPanel.add(time);
-        gameFrame.add(labelPanel, BorderLayout.PAGE_START);
+        topPanel.add(flagsRemaining);
+        topPanel.add(Box.createHorizontalGlue());
+        topPanel.add(outcome);
+        topPanel.add(Box.createHorizontalGlue());
+        topPanel.add(time);
+        gameFrame.add(topPanel, BorderLayout.PAGE_START);
     }
 
-    private void createNewGamePanel() {
-        JPanel newGamePanel = new JPanel();
+    private void createBottomPanel() {
+        JPanel bottomPanel = new JPanel();
         JButton newGameButton = new JButton("New Game");
-        newGamePanel.add(newGameButton);
         newGameButton.addActionListener(e -> newGameClicked());
-        gameFrame.add(newGamePanel, BorderLayout.SOUTH);
+        bottomPanel.add(newGameButton);
+        gameFrame.add(bottomPanel, BorderLayout.SOUTH);
     }
 
     private void createMinePanel() {
@@ -90,19 +89,19 @@ public class MinesweeperFrame {
         int rows = selectedDifficulty.getRows();
         int cols = selectedDifficulty.getCols();
         int mines = selectedDifficulty.getMines();
-        game = new GameState(rows, cols, mines);
-        gridButtons = new JButton[rows][cols];
+        game = new GameState(this, rows, cols, mines);
         minePanel.removeAll();
         setMinePanelSize(rows, cols);
+        gridButtons = new JButton[rows][cols];
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                JButton b = new JButton("");
-                gridButtons[i][j] = b;
+                JButton b = new JButton();
                 b.setPreferredSize(gridButtonSize);
                 b.setMinimumSize(gridButtonSize);
                 b.setMaximumSize(gridButtonSize);
                 b.addMouseListener(new MinesweeperListener(i, j));
+                gridButtons[i][j] = b;
                 minePanel.add(b);
             }
         }
@@ -129,104 +128,86 @@ public class MinesweeperFrame {
         minePanel.setMaximumSize(panelSize);
     }
 
-    private void setFlagsRemaining() {
+    void setFlagsRemaining() {
         int flags = game.getFlagsRemaining();
-        int mines = game.getMines();
-        flagsRemaining.setText(String.format("%02d / %d", flags, mines));
+        flagsRemaining.setText(Integer.toUnsignedString(flags));
     }
 
-    private void recursiveReveal(int x, int y) {
-        for (int i = x - 1; i < x + 2; i++) {
-            for (int j = y - 1; j < y + 2; j++) {
-                if (!game.inGrid(i, j))
-                    continue;
-                if (game.isVisible(i, j))
-                    continue;
-                if (game.isMine(i, j))
-                    continue;
-                if (game.isFlagged(i, j))
-                    continue;
-                leftClick(i, j);
-            }
+    void displayFlag(int x, int y) {
+        gridButtons[x][y].setIcon(GameIcon.FLAG.getIcon());
+    }
+
+    void displayDefault(int x, int y) {
+        gridButtons[x][y].setIcon(null);
+    }
+
+    void displayCount(int x, int y, int count) {
+        if (count == 0) {
+            gridButtons[x][y].setEnabled(false);
+        }
+        else {
+            Icon icon = numToIcon(count).getIcon();
+            gridButtons[x][y].setIcon(icon);
         }
     }
 
-    private void leftClick(int x, int y) {
-        JButton b = gridButtons[x][y];
-        GameIcon icon = game.select(x, y);
-        if (icon == null) return;
-
-        switch(icon) {
-            case BLANK:
-                recursiveReveal(x, y);
-                removeMouseListeners(b);
-                b.setEnabled(false);
-                break;
-            case ONE:
-            case TWO:
-            case THREE:
-            case FOUR:
-            case FIVE:
-            case SIX:
-            case SEVEN:
-            case EIGHT:
-                b.setIcon(icon.getIcon());
-                removeMouseListeners(b);
-                if (game.hasWon())
-                    wonGame();
-                break;
-            case EXP_MINE:
-                b.setIcon(icon.getIcon());
-                lostGame();
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void rightClick(int x, int y) {
-        JButton b = gridButtons[x][y];
-        GameIcon icon = game.flag(x, y);
-        b.setIcon(icon.getIcon());
-        setFlagsRemaining();
-    }
-
-    private static void removeMouseListeners(JButton b) {
-        for (MouseListener m : b.getMouseListeners())
-            b.removeMouseListener(m);
-    }
-
-    private void wonGame() {
+    void gameLost(int x, int y) {
         timer.stop();
-
-        for (int i = 0; i < gridButtons.length; i++) {
-            for (int j = 0; j < gridButtons[0].length; j++) {
-                removeMouseListeners(gridButtons[i][j]);
-            }
-        }
-
-        outcome.setText("YOU WIN");
-    }
-
-    private void lostGame() {
-        timer.stop();
+        gridButtons[x][y].setIcon(GameIcon.EXP_MINE.getIcon());
 
         for (int i = 0; i < gridButtons.length; i++) {
             for (int j = 0; j < gridButtons[0].length; j++) {
                 JButton b = gridButtons[i][j];
                 ImageIcon icon = (ImageIcon) b.getIcon();
-                removeMouseListeners(b);
+                disableButton(b);
                 if (game.isMine(i, j) && icon == null)
                     b.setIcon(GameIcon.MINE.getIcon());
                 if (!game.isMine(i,j) && icon == GameIcon.FLAG.getIcon())
                     b.setIcon(GameIcon.X_MINE.getIcon());
             }
         }
-
         outcome.setText("YOU LOSE");
     }
 
-    public class MinesweeperListener implements MouseListener {
+    void gameWon() {
+        timer.stop();
+        for (int i = 0; i < gridButtons.length; i++) {
+            for (int j = 0; j < gridButtons[0].length; j++) {
+                disableButton(gridButtons[i][j]);
+            }
+        }
+        outcome.setText("YOU WIN");
+    }
+
+    private static void disableButton(JButton b) {
+        for (MouseListener m : b.getMouseListeners())
+            b.removeMouseListener(m);
+    }
+
+    private static GameIcon numToIcon(int numMines) {
+        switch(numMines) {
+            case 1:
+                return GameIcon.ONE;
+            case 2:
+                return GameIcon.TWO;
+            case 3:
+                return GameIcon.THREE;
+            case 4:
+                return GameIcon.FOUR;
+            case 5:
+                return GameIcon.FIVE;
+            case 6:
+                return GameIcon.SIX;
+            case 7:
+                return GameIcon.SEVEN;
+            case 8:
+                return GameIcon.EIGHT;
+            default:
+                return null;
+        }
+    }
+
+    private class MinesweeperListener extends MouseAdapter {
         private int x;
         private int y;
 
@@ -237,21 +218,9 @@ public class MinesweeperFrame {
 
         public void mouseClicked(MouseEvent e) {
             if (SwingUtilities.isLeftMouseButton(e))
-                leftClick(x, y);
+                game.select(x, y);
             if (SwingUtilities.isRightMouseButton(e))
-                rightClick(x, y);
-        }
-
-        public void mouseEntered(MouseEvent e) {
-        }
-
-        public void mouseExited(MouseEvent e) {
-        }
-
-        public void mousePressed(MouseEvent e) {
-        }
-
-        public void mouseReleased(MouseEvent e) {
+                game.flag(x, y);
         }
     }
 

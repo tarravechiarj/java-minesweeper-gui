@@ -3,6 +3,7 @@ package minesweeper;
 import java.util.Random;
 
 public class GameState {
+    private MinesweeperFrame view;
     private int[][] grid;
     private boolean[][] visible;
     private boolean[][] flagged;
@@ -12,121 +13,96 @@ public class GameState {
     private int flagsRemaining;
     private int cellsRemaining;
 
-    public GameState(int rows, int cols, int mines) {
+    public GameState(MinesweeperFrame view, int rows, int cols, int mines) {
+        this.view = view;
         this.rows = rows;
         this.cols = cols;
         this.mines = mines;
-        grid = new int[rows][cols];
         visible = new boolean[rows][cols];
         flagged = new boolean[rows][cols];
         flagsRemaining = mines;
         cellsRemaining = rows * cols - mines;
-        initializeGrid();
     }
 
-    public GameIcon select(int x, int y) {
+    void select(int x, int y) {
         if (flagged[x][y] || visible[x][y])
-            return null;
+            return;
+        if (grid == null)
+            initializeGrid(x, y);
 
-        GameIcon icon = numToIcon(grid[x][y]);
         visible[x][y] = true;
+        int mineCount = grid[x][y];
 
-        if (icon == GameIcon.MINE)
-            return GameIcon.EXP_MINE;
+        switch(mineCount) {
+            case -1:
+                view.gameLost(x, y);
+                break;
+            case 0:
+                recursiveReveal(x, y);
+                // fall through
+            default:
+                view.displayCount(x, y, mineCount);
+                break;
+        }
 
-        cellsRemaining--;
-        return icon;
+        if (--cellsRemaining == 0)
+            view.gameWon();
     }
 
-    public GameIcon flag(int x, int y) {
-        if (visible[x][y])
-            return null;
+    private void recursiveReveal(int x, int y) {
+        for (int i = x - 1; i < x + 2; i++) {
+            for (int j = y - 1; j < y + 2; j++) {
+                if (!inGrid(i, j)) continue;
+                if (visible[i][j]) continue;
+                if (flagged[i][j]) continue;
+                if (isMine(i, j)) continue;
+                select(i, j);
+            }
+        }
+    }
 
-        if (flagged[x][y]) {
+    void flag(int x, int y) {
+        if (visible[x][y]) {
+            return;
+        }
+        else if (flagged[x][y]) {
             flagged[x][y] = false;
             flagsRemaining++;
-            return GameIcon.BLANK;
+            view.displayDefault(x, y);
+            view.setFlagsRemaining();
         }
         else if (flagsRemaining > 0) {
             flagged[x][y] = true;
             flagsRemaining--;
-            return GameIcon.FLAG;
-        }
-        else {
-            return GameIcon.BLANK;
+            view.displayFlag(x, y);
+            view.setFlagsRemaining();
         }
     }
 
-    public boolean isMine(int x, int y) {
+    boolean isMine(int x, int y) {
         return grid[x][y] < 0;
     }
 
-    public boolean isVisible(int x, int y) {
-        return visible[x][y];
-    }
-
-    public boolean isFlagged(int x, int y) {
-        return flagged[x][y];
-    }
-
-    private int adjMineCount(int x, int y) {
-        return grid[x][y];
-    }
-
-    public boolean inGrid(int x, int y) {
-        return (x >= 0 && x < rows) && (y >= 0 && y < cols);
-    }
-
-    public int getFlagsRemaining() {
+    int getFlagsRemaining() {
         return flagsRemaining;
     }
 
-    public int getMines() {
-        return mines;
+    private boolean inGrid(int x, int y) {
+        return (x >= 0 && x < rows) && (y >= 0 && y < cols);
     }
 
-    public boolean hasWon() {
-        return cellsRemaining == 0;
-    }
-
-    private GameIcon numToIcon(int numMines) {
-        switch(numMines) {
-            case -1:
-                return GameIcon.MINE;
-            case 0:
-                return GameIcon.BLANK;
-            case 1:
-                return GameIcon.ONE;
-            case 2:
-                return GameIcon.TWO;
-            case 3:
-                return GameIcon.THREE;
-            case 4:
-                return GameIcon.FOUR;
-            case 5:
-                return GameIcon.FIVE;
-            case 6:
-                return GameIcon.SIX;
-            case 7:
-                return GameIcon.SEVEN;
-            case 8:
-                return GameIcon.EIGHT;
-            default:
-                return null;
-        }
-    }
-
-    private void initializeGrid() {
+    private void initializeGrid(int x, int y) {
+        grid = new int[rows][cols];
         Random rand = new Random();
         int minesPlaced = 0;
 
         while (minesPlaced < mines) {
-            int x = rand.nextInt(rows);
-            int y = rand.nextInt(cols);
+            int i = rand.nextInt(rows);
+            int j = rand.nextInt(cols);
 
-            if (!isMine(x, y)) {
-                grid[x][y] = -1;
-                incAdjMineCount(x, y);
+            if (!isMine(i, j) && (i != x || j != y)) {
+                grid[i][j] = -1;
+                incAdjMineCount(i, j);
                 minesPlaced++;
             }
         }
